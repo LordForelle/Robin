@@ -355,6 +355,109 @@ def service_truck():
     return v.finish()
 
 
+# ============================================================ BULLDOZER
+def bulldozer():
+    v = Vehicle("Vehicle_Bulldozer")
+    col = YELLOW
+    for sx in (-1, 1):
+        x = sx * 1.1
+        v.add(box((x, 0, 0.45), (0.6, 2.3, 0.9)), TIRE)
+        for y in (-1.15, 1.15):
+            v.add(xf(cyl((0, 0, -0.3), 0.45, 0.45, 0.6, 10), loc=(x, y, 0.45), rot=(0, 90, 0)), TIRE)
+            v.add(xf(cyl((0, 0, -0.33), 0.32, 0.32, 0.66, 8), loc=(x, y, 0.45), rot=(0, 90, 0)), col)
+        for k in range(12):
+            v.add(box((x, -1.1 + k * 0.2, 0.91), (0.62, 0.07, 0.04)), DARK)
+        for k in range(14):
+            a = math.pi / 2 + k * math.pi / 13
+            for sy, y0 in ((-1, -1.15), (1, 1.15)):
+                v.add(xf(box((0, 0, 0.46), (0.62, 0.07, 0.04)), loc=(x, y0, 0.45),
+                         rot=(-sy * math.degrees(a - math.pi / 2), 0, 0)), DARK)
+        v.add(box((x, 0, 0.42), (0.66, 1.9, 0.32)), col)
+        for y in (-0.6, 0.0, 0.6):
+            v.add(xf(cyl((0, 0, -0.34), 0.13, 0.13, 0.68, 8), loc=(x, y, 0.2), rot=(0, 90, 0)), DARK)
+        v.add(box((x, 0.3, 0.97), (0.72, 2.6, 0.06)), col)
+    v.add(box((0, 0.2, 1.15), (1.55, 3.4, 0.6)), col)
+    v.add(box((0, -0.85, 1.8), (1.3, 1.9, 0.7), (0.95, 0.9)), col)
+    v.add(box((0, -1.81, 1.35), (1.2, 0.04, 0.3)), DARK)
+    v.add(box((0, -1.75, 1.8), (1.1, 0.06, 0.55)), DARK)
+    for k in range(5):
+        v.add(box((0, -1.79, 1.6 + k * 0.1), (1.0, 0.03, 0.03)), "4A4A4A")
+    v.add(cyl((0.4, -0.7, 2.1), 0.08, 0.08, 0.8, 8), DARK)
+    v.add(cyl((-0.35, -0.9, 2.1), 0.14, 0.14, 0.35, 8), DARK)
+    v.add(cyl((-0.35, -0.9, 2.45), 0.16, 0.16, 0.08, 8), DARK)
+    cabin(v, 0.1, 1.7, 1.55, 1.45, 1.8, 2.8, col, (0.95, 0.9))
+    for sx in (-1, 1):
+        v.add(box((sx * 0.55, 0.2, 2.95), (0.22, 0.1, 0.12)), DARK)
+        v.add(box((sx * 0.55, 0.14, 2.95), (0.18, 0.02, 0.09)), HEAD)
+        v.add(box((sx * 0.82, -0.85, 1.9), (0.04, 1.4, 0.04)), DARK)  # Handlauf
+    beacon(v, 0.4, 1.2, 2.9)
+    # Schild vorne
+    by = -2.35
+    for (zc, h, ang) in ((0.3, 0.5, 18), (0.75, 0.45, 0), (1.15, 0.4, -22)):
+        v.add(xf(box((0, 0, 0), (3.4, 0.12, h)), loc=(0, by + (0.08 if ang > 0 else (0.1 if ang < 0 else 0)), zc),
+                 rot=(ang, 0, 0)), col)
+    v.add(box((0, by - 0.12, 0.08), (3.4, 0.16, 0.12)), DARK)
+    for sx in (-1, 1):
+        v.add(box((sx * 1.72, by + 0.12, 0.7), (0.06, 0.45, 1.3)), col)
+        v.add(beam_v((sx * 1.1, by + 0.25, 0.45), (sx * 1.1, -0.3, 0.45), 0.2), col)
+        v.add(beam_v((sx * 0.62, by + 0.25, 1.05), (sx * 0.62, -1.4, 1.75), 0.1), METAL)
+        v.add(beam_v((sx * 0.62, -1.0, 1.55), (sx * 0.62, -1.6, 1.9), 0.16), DARK)
+    # Aufreisser hinten
+    v.add(box((0, 2.05, 0.95), (1.3, 0.3, 0.35)), col)
+    for sx in (-0.5, 0.5):
+        v.add(beam_v((sx, 1.9, 1.1), (sx, 2.5, 0.8), 0.14), col)
+    v.add(box((0, 2.55, 0.8), (1.2, 0.22, 0.22)), col)
+    v.add(box((0, 2.6, 0.4), (0.14, 0.24, 0.8)), DARK)
+    v.add(box((0, 2.5, 0.02), (0.14, 0.3, 0.1)), METAL)
+    lights_rear(v, 1.91, 1.25, 0.6)
+    return v.finish()
+
+
+def beam_v(p0, p1, w):
+    from mathutils import Vector
+    p0, p1 = Vector(p0), Vector(p1)
+    d = p1 - p0
+    m = d.to_track_quat("Z", "Y").to_matrix()
+    g = box((0, 0, 0), (w, w, d.length))
+    mid = (p0 + p1) / 2
+    return [tuple(m @ Vector(q) + mid) for q in g[0]], g[1]
+
+
+# ================================================================= QUAD
+def quad():
+    v = Vehicle("Vehicle_Quad")
+    col = "3C7A3E"
+    v.add(box((0, 0, 0.42), (0.5, 1.5, 0.18)), DARK)
+    v.add(box((0, -0.2, 0.72), (0.46, 0.45, 0.3), (0.8, 0.85)), col)
+    v.add(box((0, 0.3, 0.78), (0.38, 0.7, 0.14)), DARK)
+    for y in (-0.62, 0.62):
+        v.add(box((0, y, 0.72), (1.1, 0.72, 0.07)), col)
+        for sx in (-1, 1):
+            v.add(box((sx * 0.5, y, 0.64), (0.1, 0.7, 0.14)), col)
+        v.add(box((0, y + (-0.05 if y < 0 else 0.05), 0.82), (0.8, 0.55, 0.03)), METAL)
+        for k in range(4):
+            v.add(box((0, y - 0.2 + k * 0.13, 0.84), (0.8, 0.02, 0.02)), IRON)
+    v.add(box((0, -0.99, 0.62), (0.7, 0.04, 0.2)), col)
+    lights_front(v, -1.0, 0.64, 0.22, (0.16, 0.08))
+    lights_rear(v, 0.99, 0.66, 0.35)
+    v.add(box((0, -0.99, 0.35), (0.8, 0.1, 0.08)), DARK)
+    v.add(beam_v((0, -0.35, 0.8), (0, -0.48, 1.05), 0.05), DARK)
+    v.add(box((0, -0.48, 1.06), (0.75, 0.05, 0.05)), DARK)
+    for sx in (-1, 1):
+        v.add(box((sx * 0.38, -0.48, 1.06), (0.12, 0.07, 0.07)), "4A4A4A")
+        v.add(box((sx * 0.35, 0.05, 0.36), (0.18, 0.4, 0.04)), METAL)
+    v.add(box((0, -0.46, 1.1), (0.14, 0.06, 0.06)), "4A4A4A")
+    # Ladung
+    v.add(box((0.2, 0.7, 1.0), (0.18, 0.3, 0.3)), RED)
+    v.add(box((-0.15, 0.6, 0.95), (0.36, 0.3, 0.2)), METAL)
+    v.add(cyl((0, -0.72, 0.84), 0.12, 0.2, 0.05, 10), IRON)
+    v.add(cyl((-0.42, 0.9, 0.8), 0.012, 0.01, 1.6, 6), DARK)
+    v.add(box((-0.42 + 0.15, 0.9, 2.3), (0.3, 0.01, 0.18)), AMBER)
+    v.axle("F", -0.62, 0.28, 0.24, 1.0, "C8C8C8")
+    v.axle("R", 0.62, 0.28, 0.26, 1.0, "C8C8C8")
+    return v.finish()
+
+
 # ==================================================================== MAIN
 def export_hierarchy(objs):
     bpy.ops.object.select_all(action="DESELECT")
@@ -370,10 +473,12 @@ def export_hierarchy(objs):
 
 
 def main():
-    sets = [pickup(), service_truck(), fuel_tanker(), semi_tractor(), lowboy_trailer()]
+    sets = [pickup(), service_truck(), fuel_tanker(), semi_tractor(), lowboy_trailer(), bulldozer(), quad()]
     for objs in sets:
         export_hierarchy(objs)
     cam, target = bb.setup_preview()
+    sets[5][0].location = (-20, 0, 0)
+    sets[6][0].location = (-24, 0, 0)
     pos = [(-13, 0), (-7.5, 0), (-1.5, 0), (5, 0)]
     for objs, (x, y) in zip(sets, pos):
         objs[0].location = (x, y, 0)
@@ -385,7 +490,8 @@ def main():
              ("preview_ServiceTruck", (-2.5, -9.5, 4), (-7.5, 0.5, 1.4), 35),
              ("preview_FuelTanker", (4, -11, 4.5), (-1.5, 0.3, 1.8), 33),
              ("preview_SemiTrailer", (17, -8, 7), (5, 7, 1.2), 28),
-             ("preview_TrailerRear", (12, 26, 5), (5, 14, 1.2), 32)]
+             ("preview_TrailerRear", (12, 26, 5), (5, 14, 1.2), 32),
+             ("preview_DozerQuad", (-15, -9, 4.5), (-21.5, 0, 1.0), 33)]
     bb.render_shots(shots, cam, target)
     print("DONE")
 
