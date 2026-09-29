@@ -689,10 +689,7 @@ def gold_shop():
 
 
 # ================================================================== Export
-BUILDERS = [saloon, townhall, gas_station, bank, gold_shop]
-objs = []
-for fn in BUILDERS:
-    ob = fn()
+def export_mesh(ob):
     bpy.ops.object.select_all(action="DESELECT")
     ob.select_set(True)
     bpy.context.view_layer.objects.active = ob
@@ -702,52 +699,48 @@ for fn in BUILDERS:
         axis_forward="-Z", axis_up="Y", mesh_smooth_type="FACE", bake_space_transform=True,
     )
     print(ob.name, len(ob.data.polygons), "faces")
-    objs.append(ob)
+
 
 # ================================================================= Vorschau
-world = bpy.data.worlds.new("World")
-scene.world = world
-world.use_nodes = True
-world.node_tree.nodes["Background"].inputs[0].default_value = (0.55, 0.62, 0.72, 1)
-world.node_tree.nodes["Background"].inputs[1].default_value = 0.8
+def setup_preview():
+    world = bpy.data.worlds.new("World")
+    scene.world = world
+    world.use_nodes = True
+    world.node_tree.nodes["Background"].inputs[0].default_value = (0.55, 0.62, 0.72, 1)
+    world.node_tree.nodes["Background"].inputs[1].default_value = 0.8
 
-ground = Build("Ground")
-ground.add(box((0, 0, -0.05), (200, 200, 0.1)), "BCA07C")
-ground.finish()
+    ground = Build("Ground")
+    ground.add(box((0, 0, -0.05), (200, 200, 0.1)), "BCA07C")
+    ground.finish()
 
-sun = bpy.data.objects.new("Sun", bpy.data.lights.new("Sun", "SUN"))
-sun.data.energy = 3.5
-sun.data.angle = math.radians(3)
-sun.rotation_euler = (math.radians(50), math.radians(10), math.radians(-35))
-scene.collection.objects.link(sun)
+    sun = bpy.data.objects.new("Sun", bpy.data.lights.new("Sun", "SUN"))
+    sun.data.energy = 3.5
+    sun.data.angle = math.radians(3)
+    sun.rotation_euler = (math.radians(50), math.radians(10), math.radians(-35))
+    scene.collection.objects.link(sun)
 
-cam = bpy.data.objects.new("Cam", bpy.data.cameras.new("Cam"))
-scene.collection.objects.link(cam)
-target = bpy.data.objects.new("Target", None)
-scene.collection.objects.link(target)
-con = cam.constraints.new("TRACK_TO")
-con.target = target
-scene.camera = cam
+    cam = bpy.data.objects.new("Cam", bpy.data.cameras.new("Cam"))
+    scene.collection.objects.link(cam)
+    target = bpy.data.objects.new("Target", None)
+    scene.collection.objects.link(target)
+    con = cam.constraints.new("TRACK_TO")
+    con.target = target
+    scene.camera = cam
 
-scene.render.engine = "CYCLES"
-scene.cycles.device = "CPU"
-scene.cycles.samples = int(os.environ.get("SAMPLES", "40"))
-scene.cycles.use_denoising = False
-scene.render.resolution_x = 1600
-scene.render.resolution_y = 900
-scene.view_settings.view_transform = "Standard"
+    scene.render.engine = "CYCLES"
+    scene.cycles.device = "CPU"
+    scene.cycles.samples = int(os.environ.get("SAMPLES", "40"))
+    scene.cycles.use_denoising = False
+    scene.render.resolution_x = 1600
+    scene.render.resolution_y = 900
+    scene.view_settings.view_transform = "Standard"
+    return cam, target
 
-xs = [-34, -17, 0, 16, 30]
-for ob, x in zip(objs, xs):
-    ob.location.x = x
 
-bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "buildings.blend"))
-
-if os.environ.get("RENDER", "1") == "1":
-    shots = [("preview_all", (-2, -52, 20), (-2, 0, 3), 24)]
-    for ob, x in zip(objs, xs):
-        short = ob.name.replace("Building_", "")
-        shots.append((f"preview_{short}", (x + 9, -21, 7.5), (x, -2, 3.2), 32))
+def render_shots(shots, cam, target):
+    """shots: Liste (name, kamera_pos, ziel_pos, brennweite). ENV: RENDER=0 aus, ONLY=filter."""
+    if os.environ.get("RENDER", "1") != "1":
+        return
     only = os.environ.get("ONLY")
     for name, cl, tl, lens in shots:
         if only and only not in name:
@@ -757,4 +750,26 @@ if os.environ.get("RENDER", "1") == "1":
         cam.data.lens = lens
         scene.render.filepath = os.path.join(OUT, name + ".png")
         bpy.ops.render.render(write_still=True)
-print("DONE")
+
+
+def main():
+    objs = []
+    for fn in (saloon, townhall, gas_station, bank, gold_shop):
+        ob = fn()
+        export_mesh(ob)
+        objs.append(ob)
+    cam, target = setup_preview()
+    xs = [-34, -17, 0, 16, 30]
+    for ob, x in zip(objs, xs):
+        ob.location.x = x
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "buildings.blend"))
+    shots = [("preview_all", (-2, -52, 20), (-2, 0, 3), 24)]
+    for ob, x in zip(objs, xs):
+        short = ob.name.replace("Building_", "")
+        shots.append((f"preview_{short}", (x + 9, -21, 7.5), (x, -2, 3.2), 32))
+    render_shots(shots, cam, target)
+    print("DONE")
+
+
+if __name__ == "__main__":
+    main()
