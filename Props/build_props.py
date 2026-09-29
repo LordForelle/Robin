@@ -329,6 +329,147 @@ def panning_station():
     return b.finish()
 
 
+# ================================================================= MINE
+def mine_entrance():
+    b = Build("Mining_MineEntrance")
+    b.add(rock_geo((0, 2.6, 0), (5.5, 3.2, 3.6), 11, 2, 0.12, 0.05), ROCK)
+    for sx in (-1, 1):
+        b.add(rock_geo((sx * 3.8, 0.8, 0), (1.6, 1.5, 1.4), 12 + sx, 1), ROCK_D)
+    b.add(box((0, 0.6, 1.5), (2.8, 2.4, 3.0)), "141210")  # Stollen
+    for sx in (-1, 1):
+        log(b, (sx * 1.45, -0.55, 0), (sx * 1.45, -0.55, 3.2), 0.18)
+        log(b, (sx * 1.45, 0.4, 0), (sx * 1.45, 0.4, 3.2), 0.16)
+    log(b, (-1.9, -0.55, 3.25), (1.9, -0.55, 3.25), 0.2)
+    log(b, (-1.7, 0.4, 3.2), (1.7, 0.4, 3.2), 0.17)
+    for k in range(6):
+        b.add(box((-1.1 + k * 0.44, -0.1, 3.45), (0.2, 1.3, 0.12)), WOOD_D)
+    b.add(box((0, -0.8, 3.75), (2.0, 0.08, 0.5)), WOOD_L)
+    b.add(text("MINE", 0.36, (0, -0.85, 3.75), 0.03), "3A2A1A")
+    b.add(box((1.25, -0.8, 2.4), (0.25, 0.25, 0.3)), bb.LAMP)
+    b.add(pyramid((1.25, -0.8, 2.55), 0.2, 0.15), IRON)
+    b.add(box((-2.3, -0.9, 0.5), (0.6, 0.02, 0.4)), "F2C12E")  # Warnschild
+    b.add(box((-2.3, -0.9, 0.25), (0.06, 0.06, 0.5)), WOOD_DD)
+    # Gleis aus dem Stollen
+    rail_segment(b, 0, -1.6, 4.4, sleepers=8)
+    return b.finish()
+
+
+def rail_segment(b, x, y, L, sleepers=None, gauge=0.6):
+    n = sleepers or int(L / 0.5)
+    for k in range(n):
+        b.add(box((x, y - L / 2 + (k + 0.5) * L / n, 0.05), (1.0, 0.18, 0.1)), WOOD_D)
+    for sx in (-1, 1):
+        b.add(box((x + sx * gauge / 2, y, 0.14), (0.05, L, 0.08)), METAL)
+        b.add(box((x + sx * gauge / 2, y, 0.11), (0.1, L, 0.02)), IRON)
+
+
+def rail_straight():
+    b = Build("Mining_RailStraight")
+    rail_segment(b, 0, 0, 4.0)
+    return b.finish()
+
+
+def rail_bumper():
+    b = Build("Mining_RailBumper")
+    rail_segment(b, 0, 0, 2.0)
+    for sx in (-0.3, 0.3):
+        b.add(box((sx, 0.8, 0.45), (0.12, 0.12, 0.7)), WOOD_DD)
+        b.add(beam((sx, 0.85, 0.75), (sx, 0.35, 0.1), 0.1), WOOD_DD)
+    b.add(box((0, 0.72, 0.62), (1.0, 0.18, 0.22)), RED)
+    b.add(box((0, 0.62, 0.62), (0.8, 0.02, 0.1)), WHITE)
+    return b.finish()
+
+
+def minecart():
+    b = Build("Mining_Minecart")
+    b.add(box((0, 0, 0.3), (0.7, 1.0, 0.14)), DARK)
+    b.add(box((0, 0, 0.75), (0.85, 1.2, 0.7), (1.15, 1.12)), "8A5A3A")
+    for z in (0.45, 1.05):
+        b.add(box((0, 0, z), (0.87 if z < 1 else 0.98, 1.22 if z < 1 else 1.35, 0.06)), IRON)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            b.add(box((sx * 0.46, sy * 0.55, 0.75), (0.04, 0.06, 0.6)), IRON)
+    b.add(pile_geo((0, 0, 1.08), 0.5, 0.25, 8, 0.2), "4A3A30")
+    for k in range(5):
+        a = k * 1.3
+        b.add(rock_geo((0.25 * math.cos(a), 0.3 * math.sin(a), 1.2), (0.05, 0.04, 0.04), 60 + k, 0, 0.3, 0.0), GOLD)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            b.add(xf(cyl((0, 0, -0.05), 0.17, 0.17, 0.1, 10), loc=(sx * 0.3, sy * 0.35, 0.19), rot=(0, 90, 0)), IRON)
+    for sy in (-1, 1):
+        b.add(box((0, sy * 0.7, 0.3), (0.12, 0.2, 0.08)), DARK)
+    return b.finish()
+
+
+def tnt_crate():
+    b = Build("Mining_TNTCrate")
+    b.crate(0, 0, 0, 0.6)
+    b.add(box((0, -0.31, 0.3), (0.42, 0.02, 0.2)), RED)
+    b.add(text("TNT", 0.15, (0, -0.325, 0.3), 0.02), WHITE)
+    for k in range(4):
+        b.add(xf(cyl((0, 0, -0.18), 0.04, 0.04, 0.36, 6), loc=(-0.12 + k * 0.08, -0.05, 0.64), rot=(90, 0, 0)), RED)
+    b.add(beam((0.12, 0.13, 0.66), (0.35, 0.35, 0.8), 0.015), "E8DDC4")
+    return b.finish()
+
+
+def gold_bars():
+    b = Build("Mining_GoldBars")
+    rows = [(4, 0.0), (3, 0.09), (2, 0.18), (1, 0.27)]
+    for n, z in rows:
+        for i in range(n):
+            x = (i - (n - 1) / 2) * 0.13
+            for j in range(2):
+                b.add(box((x, j * 0.26 - 0.13, z + 0.045), (0.12, 0.25, 0.09), (0.75, 0.9)), GOLD)
+    return b.finish()
+
+
+def safe():
+    b = Build("Mining_Safe")
+    b.add(box((0, 0, 0.1), (0.95, 0.85, 0.2)), DARK)
+    b.add(box((0, 0, 0.72), (0.9, 0.8, 1.1)), "2F4A3A")
+    b.add(box((0, -0.41, 0.72), (0.74, 0.03, 0.94)), "3E5F4A")
+    b.add(box((0, -0.43, 0.72), (0.66, 0.02, 0.86)), GOLD)
+    b.add(box((0, -0.44, 0.72), (0.62, 0.02, 0.82)), "3E5F4A")
+    b.add(xf(cyl((0, 0, 0), 0.1, 0.1, 0.04, 12), loc=(0, -0.46, 0.85), rot=(90, 0, 0)), METAL)
+    b.add(box((0, -0.5, 0.85), (0.02, 0.01, 0.07)), DARK)
+    b.add(box((0.18, -0.48, 0.6), (0.2, 0.04, 0.04)), METAL)
+    b.add(box((0.28, -0.44, 0.52), (0.08, 0.04, 0.2)), METAL)
+    for sx in (-1, 1):
+        b.add(box((sx * 0.3, -0.44, 1.02), (0.05, 0.03, 0.08)), GOLD)
+    return b.finish()
+
+
+def feed_hopper():
+    b = Build("Mining_FeedHopper")
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            b.add(box((sx * 1.1, sy * 1.1, 1.1), (0.15, 0.15, 2.2)), DARK)
+        b.add(beam((sx * 1.1, -1.1, 0.3), (sx * 1.1, 1.1, 1.9), 0.08), DARK)
+    b.add(box((0, 0, 2.7), (2.6, 2.6, 1.2), (1.0, 1.0)), "C8302C")
+    b.add(box((0, 0, 1.66), (0.9, 0.9, 0.92), (2.89, 2.89)), "C8302C")
+    b.add(box((0, 0, 1.2), (0.9, 0.9, 0.3)), DARK)
+    for k in range(9):
+        b.add(box((-1.2 + k * 0.3, 0, 3.35), (0.08, 2.7, 0.1)), IRON)
+    b.add(box((0, 0, 3.32), (2.7, 0.1, 0.08)), IRON)
+    b.add(box((0, -1.9, 0.9), (0.9, 2.4, 0.08)), DARK)  # Auslauf
+    b.add(xf(box((0, 0, 0), (0.8, 1.2, 0.35)), loc=(0, -1.0, 1.05), rot=(12, 0, 0)), "C8302C")
+    for k in range(4):
+        b.add(rock_geo((-0.8 + k * 0.5, 0.2 * (k % 2), 3.45), (0.2, 0.18, 0.14), 80 + k, 0), DIRT)
+    return b.finish()
+
+
+def platform_scale():
+    b = Build("Mining_Scale")
+    b.add(box((0, 0, 0.06), (1.2, 1.2, 0.12)), METAL)
+    b.add(box((0, 0, 0.125), (1.1, 1.1, 0.01)), IRON)
+    b.add(box((0, 0.62, 0.6), (0.08, 0.08, 1.2)), DARK)
+    b.add(box((0, 0.62, 1.3), (0.4, 0.12, 0.3)), YELLOW)
+    b.add(box((0, 0.55, 1.3), (0.3, 0.02, 0.12)), "1E3A1E")
+    b.add(box((-0.05, 0.54, 1.3), (0.16, 0.01, 0.06)), "7CFC6A")
+    b.add(box((0.1, 0.0, 0.25), (0.28, 0.2, 0.22), (0.7, 0.7)), GOLD)
+    return b.finish()
+
+
 # ================================================================ CAMP
 def container(name, col, office=False):
     b = Build(name)
@@ -598,6 +739,8 @@ def main():
         "camp": [container("Camp_ContainerOffice", "E8E8E8", True), container("Camp_ContainerStorage", "B83A32"),
                  wall_tent(), toilet(), campfire(), woodpile(), workbench(), sign_danger(), claim_gate(), sack_pallet()],
         "nature": rocks() + [stump(), fallen_log(), bridge()],
+        "mine": [mine_entrance(), rail_straight(), rail_bumper(), minecart(), tnt_crate(), gold_bars(), safe(),
+                 feed_hopper(), platform_scale()],
     }
     for objs in groups.values():
         for ob in objs:
@@ -607,6 +750,7 @@ def main():
         "mining": (-8, [(-4, 0), (0, 0), (2.5, 0), (4.5, 0), (8, 0.5), (-4, 6), (0.5, 6), (4, 6), (-9, 12), (-3.5, 12), (1, 12)]),
         "camp": (-40, [(-6, 0), (1, 0), (7, 0), (11, -1), (-6, 7), (-2, 7), (1.5, 7), (4.5, 7), (0, 14), (7, 7)]),
         "nature": (30, [(-4, 0), (-2.5, 0), (0.5, 0), (5, 0), (-4, 5), (0, 5), (4, 7)]),
+        "mine": (60, [(0, 4), (-5, -4), (-5, -7.5), (-5, -1.2), (-2.5, -4), (-1.5, -5), (-0.2, -4.2), (5, -2), (2.2, -4.8)]),
     }
     for key, objs in groups.items():
         ox, pts = layout[key]
@@ -615,7 +759,8 @@ def main():
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(HERE, "props.blend"))
     shots = [("preview_Mining", (-2, -15, 9), (-8, 5, 0.8), 30),
              ("preview_Camp", (-34, -16, 9), (-39, 6, 1.0), 30),
-             ("preview_Nature", (36, -12, 7), (30, 3.5, 0.5), 32)]
+             ("preview_Nature", (36, -12, 7), (30, 3.5, 0.5), 32),
+             ("preview_Mine", (66, -14, 6), (59.5, 0, 1.2), 30)]
     bb.render_shots(shots, cam, target)
     print("DONE")
 

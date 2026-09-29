@@ -95,10 +95,22 @@ def xcyl_geo(c, r, length, n=8):
     return v, f
 
 
+def signed_volume(me):
+    """Positiv, wenn die Normalen eines geschlossenen Teils nach aussen zeigen."""
+    vol = 0.0
+    for p in me.polygons:
+        vs = [me.vertices[i].co for i in p.vertices]
+        for k in range(1, len(vs) - 1):
+            vol += vs[0].dot(vs[k].cross(vs[k + 1]))
+    return vol
+
+
 def part(name, geo, material, bone=None, coll=None):
     me = bpy.data.meshes.new(name)
     me.from_pydata(geo[0], [], geo[1])
     me.validate()
+    if signed_volume(me) < 0:
+        me.flip_normals()
     me.materials.append(material)
     ob = bpy.data.objects.new(name, me)
     (coll or scene.collection).objects.link(ob)
@@ -117,11 +129,6 @@ def join(objs, name):
     ob = bpy.context.view_layer.objects.active
     ob.name = name
     ob.data.name = name
-    # doppelte Vertices innerhalb der Teile zusammenfuehren, Normalen nach aussen
-    bpy.ops.object.mode_set(mode="EDIT")
-    bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.mesh.normals_make_consistent(inside=False)
-    bpy.ops.object.mode_set(mode="OBJECT")
     for p in ob.data.polygons:
         p.use_smooth = False
     return ob
